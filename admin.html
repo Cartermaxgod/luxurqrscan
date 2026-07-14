@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0,viewport-fit=cover"/>
+<meta name="robots" content="noindex,nofollow"/>
+<title>DR. LUXUR — Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --gold:#c9a84c;
+  --gold-light:#e8d5a3;
+  --gold-dim:#8a6f2e;
+  --bg:#1a1200;
+  --bg2:#161000;
+  --bg3:#201800;
+  --bg4:#281e00;
+  --text:#f0e6d0;
+  --text-dim:#8a7a60;
+  --border:rgba(201,168,76,0.15);
+  --border-strong:rgba(201,168,76,0.35);
+  --green:#7ab87a;
+  --amber:#d9a441;
+  --red:#c2603f;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'SF Pro Display','Segoe UI',sans-serif;}
+canvas#wave{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer-events:none;}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;z-index:50;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px;}
+#login-screen.hide{display:none;}
+.login-box{width:100%;max-width:360px;background:var(--bg3);border:0.5px solid var(--border);border-radius:16px;padding:32px 26px;}
+.login-mark{width:54px;height:54px;margin:0 auto 20px;border-radius:50%;background:rgba(201,168,76,0.1);border:1px solid var(--border-strong);display:flex;align-items:center;justify-content:center;}
+.login-title{font-size:20px;font-weight:700;color:var(--gold);letter-spacing:3px;text-transform:uppercase;text-align:center;margin-bottom:6px;}
+.login-sub{font-size:11px;color:var(--text-dim);letter-spacing:2px;text-transform:uppercase;text-align:center;margin-bottom:26px;}
+.login-err{font-size:12.5px;color:var(--red);text-align:center;margin-top:12px;min-height:16px;line-height:1.5;}
+
+/* ── APP SHELL ── */
+#app{position:relative;z-index:10;display:none;flex-direction:column;min-height:100vh;}
+#app.show{display:flex;}
+.topbar{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:calc(env(safe-area-inset-top,16px) + 12px) 20px 14px;background:rgba(26,18,0,0.97);border-bottom:0.5px solid var(--border);z-index:20;}
+.topbar-title{font-size:16px;font-weight:600;color:var(--gold);letter-spacing:1px;flex:1;}
+.icon-btn{width:34px;height:34px;background:var(--bg3);border:0.5px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:border-color 0.18s;}
+.icon-btn:hover{border-color:var(--gold-dim);}
+.body-wrap{flex:1;padding:18px 20px calc(env(safe-area-inset-bottom,20px)+30px);max-width:1100px;width:100%;margin:0 auto;}
+
+/* ── STATS ── */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;}
+.stat{background:var(--bg3);border:0.5px solid var(--border);border-radius:12px;padding:14px 12px;text-align:center;}
+.stat-num{font-size:24px;font-weight:700;color:var(--gold);letter-spacing:1px;}
+.stat-lbl{font-size:10px;color:var(--text-dim);letter-spacing:1.5px;text-transform:uppercase;margin-top:3px;}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{padding:9px 16px;background:var(--bg3);border:0.5px solid var(--border);border-radius:20px;font-size:12.5px;color:var(--text-dim);cursor:pointer;font-family:inherit;white-space:nowrap;transition:all 0.15s;}
+.tab.on{background:rgba(201,168,76,0.12);border-color:var(--gold);color:var(--gold);font-weight:600;}
+
+/* ── TOOLBAR ── */
+.toolbar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.search-bar{flex:1;min-width:180px;display:flex;align-items:center;gap:10px;background:var(--bg3);border:0.5px solid var(--border);border-radius:10px;padding:10px 14px;}
+.search-bar input{flex:1;min-width:0;background:none;border:none;font-size:14px;color:var(--text);outline:none;font-family:inherit;}
+.search-bar input::placeholder{color:var(--text-dim);}
+select.filter{background:var(--bg3);border:0.5px solid var(--border);border-radius:10px;padding:10px 12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;cursor:pointer;}
+.ghost-btn{padding:10px 16px;background:transparent;border:1px solid var(--border-strong);color:var(--gold);font-size:12.5px;font-weight:600;border-radius:10px;cursor:pointer;font-family:inherit;letter-spacing:0.5px;transition:all 0.18s;white-space:nowrap;}
+.ghost-btn:hover{background:rgba(201,168,76,0.08);}
+
+/* ── RECORD LIST ── */
+.rec{background:var(--bg3);border:0.5px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:10px;cursor:pointer;transition:all 0.18s;position:relative;overflow:hidden;}
+.rec::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(201,168,76,0.06) 0%,transparent 60%);opacity:0;transition:opacity 0.2s;}
+.rec:hover::before{opacity:1;}
+.rec:hover{border-color:var(--border-strong);}
+.rec-top{display:flex;align-items:center;gap:10px;margin-bottom:5px;position:relative;}
+.rec-id{font-size:13px;font-weight:700;color:var(--gold);letter-spacing:1.5px;}
+.rec-date{font-size:11px;color:var(--text-dim);margin-left:auto;white-space:nowrap;}
+.rec-name{font-size:14.5px;font-weight:600;color:var(--text);margin-bottom:2px;position:relative;}
+.rec-meta{font-size:12px;color:var(--text-dim);line-height:1.5;position:relative;}
+.pill{font-size:9.5px;font-weight:700;letter-spacing:1px;text-transform:uppercase;padding:3px 8px;border-radius:10px;border:1px solid;}
+.pill.pending,.pill.open{color:var(--amber);border-color:rgba(217,164,65,0.4);background:rgba(217,164,65,0.1);}
+.pill.done,.pill.active,.pill.resolved{color:var(--green);border-color:rgba(122,184,122,0.4);background:rgba(122,184,122,0.1);}
+.pill.cancelled{color:var(--red);border-color:rgba(194,96,63,0.4);background:rgba(194,96,63,0.1);}
+
+.empty{text-align:center;padding:50px 20px;color:var(--text-dim);font-size:14px;}
+.loading-wrap{text-align:center;padding:50px 0;}
+.spinner{display:inline-block;width:26px;height:26px;border:2px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;}
+
+/* ── DETAIL MODAL ── */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(10,7,0,0.8);display:none;align-items:flex-end;justify-content:center;padding:0;}
+.modal.show{display:flex;}
+@media(min-width:640px){.modal{align-items:center;padding:24px;}}
+.sheet{width:100%;max-width:540px;max-height:88vh;overflow-y:auto;background:var(--bg2);border:0.5px solid var(--border-strong);border-radius:18px 18px 0 0;padding:24px 22px calc(env(safe-area-inset-bottom,20px)+24px);animation:rise 0.28s cubic-bezier(.4,0,.2,1);}
+@media(min-width:640px){.sheet{border-radius:18px;}}
+.sheet::-webkit-scrollbar{display:none;}
+@keyframes rise{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.sheet-head{display:flex;align-items:center;gap:12px;margin-bottom:20px;}
+.sheet-id{font-size:19px;font-weight:700;color:var(--gold);letter-spacing:2px;flex:1;}
+.row{display:flex;gap:12px;padding:11px 0;border-bottom:0.5px solid var(--border);}
+.row:last-of-type{border-bottom:none;}
+.row-k{font-size:11px;color:var(--gold-dim);letter-spacing:1.2px;text-transform:uppercase;width:110px;flex-shrink:0;padding-top:2px;}
+.row-v{font-size:14px;color:var(--text);flex:1;line-height:1.55;word-break:break-word;}
+.row-v a{color:var(--gold);text-decoration:none;border-bottom:1px solid var(--border-strong);}
+.sheet-actions{display:flex;gap:8px;margin-top:22px;flex-wrap:wrap;}
+.sheet-actions select{flex:1;min-width:130px;background:var(--bg3);border:0.5px solid var(--border);border-radius:10px;padding:12px;font-size:13px;color:var(--text);font-family:inherit;outline:none;-webkit-appearance:none;cursor:pointer;}
+.danger-btn{padding:12px 16px;background:transparent;border:1px solid rgba(194,96,63,0.45);color:var(--red);font-size:12.5px;font-weight:600;border-radius:10px;cursor:pointer;font-family:inherit;transition:all 0.18s;}
+.danger-btn:hover{background:rgba(194,96,63,0.1);}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.fu{opacity:0;animation:fu 0.5s ease forwards;}
+.d1{animation-delay:0.05s}.d2{animation-delay:0.1s}.d3{animation-delay:0.15s}
+
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:12px;color:var(--text-dim);margin-bottom:6px;letter-spacing:0.3px;}
+.field input{width:100%;background:var(--bg4);border:0.5px solid var(--border);border-radius:10px;padding:12px 14px;font-size:14px;color:var(--text);font-family:inherit;outline:none;transition:border-color 0.2s;}
+.field input:focus{border-color:var(--gold-dim);}
+.field input::placeholder{color:var(--text-dim);}
+.submit-btn{width:100%;padding:15px;background:var(--gold);color:#0a0a0a;font-size:14px;font-weight:700;letter-spacing:1px;border:none;border-radius:12px;cursor:pointer;margin-top:18px;font-family:inherit;text-transform:uppercase;transition:all 0.18s;}
+.submit-btn:hover{background:var(--gold-light);}
+.submit-btn:active{transform:scale(0.98);}
+.submit-btn:disabled{opacity:0.6;cursor:not-allowed;}
+</style>
+</head>
+<body>
+
+<canvas id="wave"></canvas>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<!-- LOGIN -->
+<div id="login-screen" style="z-index:50;">
+  <div class="login-box fu d1">
+    <div class="login-mark">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.7" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+    </div>
+    <div class="login-title">Admin</div>
+    <div class="login-sub">Dr. Luxur Console</div>
+    <div class="field"><label>Email</label><input type="email" id="l-email" placeholder="admin@drluxur.com" autocomplete="username"/></div>
+    <div class="field"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password"/></div>
+    <button class="submit-btn" id="btn-login">Sign In →</button>
+    <div class="login-err" id="login-err"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <span class="topbar-title">Dr. Luxur — Admin</span>
+    <button class="icon-btn" id="btn-refresh" title="Refresh">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><path d="M21 12a9 9 0 11-2.64-6.36M21 3v6h-6"/></svg>
+    </button>
+    <button class="icon-btn" id="btn-logout" title="Sign out">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+    </button>
+  </div>
+
+  <div class="body-wrap">
+    <div class="stats fu d1">
+      <div class="stat"><div class="stat-num" id="stat-w">—</div><div class="stat-lbl">Warranty</div></div>
+      <div class="stat"><div class="stat-num" id="stat-t">—</div><div class="stat-lbl">Tickets</div></div>
+      <div class="stat"><div class="stat-num" id="stat-i">—</div><div class="stat-lbl">Installs</div></div>
+    </div>
+
+    <div class="tabs fu d2" id="tabs">
+      <button class="tab on" data-col="warranty">Warranty Register</button>
+      <button class="tab" data-col="ticket">Support Tickets</button>
+      <button class="tab" data-col="install">Installation Requests</button>
+    </div>
+
+    <div class="toolbar fu d2">
+      <div class="search-bar">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        <input type="text" id="search" placeholder="Search name, email, ID, order..."/>
+      </div>
+      <select class="filter" id="status-filter"><option value="">All statuses</option></select>
+      <button class="ghost-btn" id="btn-csv">Export CSV</button>
+    </div>
+
+    <div id="list" class="fu d3"></div>
+  </div>
+</div>
+
+<!-- DETAIL SHEET -->
+<div class="modal" id="modal">
+  <div class="sheet">
+    <div class="sheet-head">
+      <div class="sheet-id" id="sheet-id">—</div>
+      <button class="icon-btn" id="btn-close-sheet">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+    <div id="sheet-body"></div>
+    <div class="sheet-actions">
+      <select id="status-select"></select>
+      <button class="ghost-btn" id="btn-save-status">Update</button>
+      <button class="danger-btn" id="btn-delete">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── CANVAS WAVE ANIMATION (same as homepage) ── */
+(function(){
+  var c=document.getElementById('wave');
+  var ctx=c.getContext('2d');
+  var W,H,dpr,pts=[],animId;
+  function resize(){
+    dpr=window.devicePixelRatio||1;
+    W=window.innerWidth;H=window.innerHeight;
+    c.width=W*dpr;c.height=H*dpr;
+    c.style.width=W+'px';c.style.height=H+'px';
+    ctx.scale(dpr,dpr);
+    pts=[];
+    for(var i=0;i<6;i++){
+      pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-0.5)*0.25,vy:(Math.random()-0.5)*0.25,r:Math.random()*220+120});
+    }
+  }
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    var bgGrad=ctx.createLinearGradient(0,0,W,H);
+    bgGrad.addColorStop(0,'#1a1200');bgGrad.addColorStop(0.35,'#120d02');
+    bgGrad.addColorStop(0.65,'#0e0a01');bgGrad.addColorStop(1,'#1c1403');
+    ctx.fillStyle=bgGrad;ctx.fillRect(0,0,W,H);
+    var tl=ctx.createRadialGradient(0,0,0,0,0,W*0.7);
+    tl.addColorStop(0,'rgba(201,140,20,0.12)');tl.addColorStop(1,'rgba(201,140,20,0)');
+    ctx.fillStyle=tl;ctx.fillRect(0,0,W,H);
+    var br=ctx.createRadialGradient(W,H,0,W,H,W*0.6);
+    br.addColorStop(0,'rgba(180,120,10,0.10)');br.addColorStop(1,'rgba(180,120,10,0)');
+    ctx.fillStyle=br;ctx.fillRect(0,0,W,H);
+    for(var i=0;i<pts.length;i++){
+      var p=pts[i];
+      var g=ctx.createRadialGradient(p.x,p.y,0,p.x,p.y,p.r);
+      g.addColorStop(0,'rgba(201,168,76,0.18)');
+      g.addColorStop(0.4,'rgba(201,168,76,0.07)');
+      g.addColorStop(1,'rgba(201,168,76,0)');
+      ctx.fillStyle=g;ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);ctx.fill();
+    }
+    var t=Date.now()/5000;
+    var waves=[
+      {opacity:0.28,width:1.4,amp:28,freq:0.005,yFrac:0.25,speed:1.0},
+      {opacity:0.18,width:0.9,amp:40,freq:0.004,yFrac:0.45,speed:0.7},
+      {opacity:0.32,width:1.6,amp:22,freq:0.007,yFrac:0.60,speed:1.3},
+      {opacity:0.15,width:0.7,amp:50,freq:0.003,yFrac:0.75,speed:0.5},
+      {opacity:0.24,width:1.2,amp:32,freq:0.006,yFrac:0.35,speed:0.9}
+    ];
+    waves.forEach(function(w,l){
+      ctx.beginPath();
+      ctx.strokeStyle='rgba(201,168,76,'+w.opacity+')';
+      ctx.lineWidth=w.width;
+      var yBase=H*w.yFrac;
+      for(var x=0;x<=W;x+=3){
+        var y=yBase+Math.sin(x*w.freq+t*w.speed+l)*w.amp+Math.cos(x*w.freq*0.6+t*w.speed*0.8)*w.amp*0.4;
+        x===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+    });
+    var t2=Date.now()/1000;
+    for(var i=0;i<18;i++){
+      var px=((Math.sin(i*137.5+t2*0.2)*0.5+0.5)*W);
+      var py=((Math.cos(i*97.3+t2*0.15)*0.5+0.5)*H);
+      var alpha=0.15+Math.sin(t2*0.5+i)*0.1;
+      ctx.fillStyle='rgba(201,168,76,'+alpha+')';
+      ctx.beginPath();ctx.arc(px,py,1.2,0,Math.PI*2);ctx.fill();
+    }
+    for(var i=0;i<pts.length;i++){
+      var p=pts[i];
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.x<-p.r)p.x=W+p.r;
+      if(p.x>W+p.r)p.x=-p.r;
+      if(p.y<-p.r)p.y=H+p.r;
+      if(p.y>H+p.r)p.y=-p.r;
+    }
+    animId=requestAnimationFrame(draw);
+  }
+  window.addEventListener('resize',function(){cancelAnimationFrame(animId);resize();draw();});
+  document.addEventListener('visibilitychange',function(){if(!document.hidden){cancelAnimationFrame(animId);draw();}});
+  resize();draw();
+})();
+
+/* ── FIREBASE ── */
+var FIREBASE_CONFIG={
+  apiKey:'AIzaSyDxE3KBE211akr3ophkJ3mc8GZLjsI53_8',
+  authDomain:'ergothrone-fe349.firebaseapp.com',
+  projectId:'ergothrone-fe349',
+  storageBucket:'ergothrone-fe349.firebasestorage.app',
+  messagingSenderId:'YOUR_SENDER_ID',
+  appId:'YOUR_APP_ID'
+};
+if(!firebase.apps.length){firebase.initializeApp(FIREBASE_CONFIG);}
+var auth=firebase.auth();
+var db=firebase.firestore();
+
+/* ── COLLECTION CONFIG ── */
+var COLS={
+  warranty:{
+    path:'drluxur/data/warranty_registrations',
+    label:'Warranty',
+    idField:'warrantyId',
+    statuses:['active','claimed','expired','cancelled'],
+    fields:[
+      ['name','Name'],['email','Email'],['phone','Phone'],
+      ['product','Product'],['orderNumber','Order No.'],
+      ['purchaseDate','Purchased'],['retailer','Retailer'],
+      ['invoiceURL','Invoice'],['submittedAt','Submitted'],['status','Status']
+    ]
+  },
+  ticket:{
+    path:'drluxur/data/support_tickets',
+    label:'Ticket',
+    idField:'ticketId',
+    statuses:['open','in-progress','resolved','cancelled'],
+    fields:[
+      ['name','Name'],['email','Email'],['phone','Phone'],
+      ['issueType','Issue'],['product','Product'],['orderNumber','Order No.'],
+      ['description','Details'],['photoURLs','Photos'],
+      ['submittedAt','Submitted'],['status','Status']
+    ]
+  },
+  install:{
+    path:'drluxur/data/installation_requests',
+    label:'Installation',
+    idField:'requestId',
+    statuses:['pending','scheduled','done','cancelled'],
+    fields:[
+      ['name','Name'],['email','Email'],['phone','Phone'],
+      ['shippingAddress','Address'],['product','Product'],['orderNumber','Order No.'],
+      ['invoiceURL','Invoice'],['submittedAt','Submitted'],['status','Status']
+    ]
+  }
+};
+
+var current='warranty';
+var cache={};      /* key -> array of {docId, data} */
+var currentRec=null;
+
+/* ── AUTH ── */
+document.getElementById('btn-login').addEventListener('click',doLogin);
+document.getElementById('l-pass').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+document.getElementById('l-email').addEventListener('keydown',function(e){if(e.key==='Enter')doLogin();});
+
+function doLogin(){
+  var email=document.getElementById('l-email').value.trim();
+  var pass=document.getElementById('l-pass').value;
+  var err=document.getElementById('login-err');
+  var btn=document.getElementById('btn-login');
+  if(!email||!pass){err.textContent='Enter your email and password.';return;}
+  err.textContent='';
+  btn.disabled=true;btn.textContent='Signing in...';
+  auth.signInWithEmailAndPassword(email,pass).catch(function(e){
+    var msg='Sign-in failed. Check your email and password.';
+    if(e.code==='auth/invalid-email')msg='That email address is not valid.';
+    if(e.code==='auth/too-many-requests')msg='Too many attempts. Try again in a few minutes.';
+    if(e.code==='auth/network-request-failed')msg='Network error. Check your connection.';
+    if(e.code==='auth/operation-not-allowed')msg='Email/Password sign-in is not enabled in the Firebase console.';
+    err.textContent=msg;
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='Sign In →';
+  });
+}
+
+auth.onAuthStateChanged(function(user){
+  if(user){
+    document.getElementById('login-screen').classList.add('hide');
+    document.getElementById('app').classList.add('show');
+    document.getElementById('l-pass').value='';
+    loadAll();
+  } else {
+    document.getElementById('login-screen').classList.remove('hide');
+    document.getElementById('app').classList.remove('show');
+    cache={};
+  }
+});
+
+document.getElementById('btn-logout').addEventListener('click',function(){auth.signOut();});
+document.getElementById('btn-refresh').addEventListener('click',function(){cache={};loadAll();});
+
+/* ── LOAD ── */
+function loadAll(){
+  Object.keys(COLS).forEach(function(k){fetchCol(k);});
+}
+
+function fetchCol(key){
+  var cfg=COLS[key];
+  if(key===current)showLoading();
+  return db.collection(cfg.path).get().then(function(snap){
+    var arr=[];
+    snap.forEach(function(d){arr.push({docId:d.id,data:d.data()});});
+    arr.sort(function(a,b){
+      return String(b.data.submittedAt||'').localeCompare(String(a.data.submittedAt||''));
+    });
+    cache[key]=arr;
+    document.getElementById('stat-'+key.charAt(0)).textContent=arr.length;
+    if(key===current)render();
+  }).catch(function(e){
+    cache[key]=[];
+    if(key===current){
+      var msg=(e.code==='permission-denied')
+        ? 'Permission denied. Update your Firestore rules to allow reads for signed-in admins.'
+        : 'Could not load records: '+(e.message||'unknown error');
+      document.getElementById('list').innerHTML='<div class="empty">'+esc(msg)+'</div>';
+    }
+  });
+}
+
+/* ── TABS ── */
+document.querySelectorAll('#tabs .tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('#tabs .tab').forEach(function(t){t.classList.remove('on');});
+    tab.classList.add('on');
+    current=tab.getAttribute('data-col');
+    document.getElementById('search').value='';
+    buildStatusFilter();
+    if(cache[current])render(); else fetchCol(current);
+  });
+});
+
+function buildStatusFilter(){
+  var sel=document.getElementById('status-filter');
+  sel.innerHTML='<option value="">All statuses</option>';
+  COLS[current].statuses.forEach(function(s){
+    var o=document.createElement('option');
+    o.value=s;o.textContent=s.charAt(0).toUpperCase()+s.slice(1);
+    sel.appendChild(o);
+  });
+}
+buildStatusFilter();
+
+document.getElementById('search').addEventListener('input',render);
+document.getElementById('status-filter').addEventListener('change',render);
+
+/* ── RENDER ── */
+function showLoading(){
+  document.getElementById('list').innerHTML='<div class="loading-wrap"><div class="spinner"></div></div>';
+}
+function esc(s){
+  return String(s==null?'':s).replace(/[&<>"']/g,function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+function fmtDate(iso){
+  if(!iso)return '—';
+  var d=new Date(iso);
+  if(isNaN(d))return String(iso);
+  return d.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'})+
+    ' · '+d.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'});
+}
+
+function visibleRecords(){
+  var cfg=COLS[current];
+  var arr=cache[current]||[];
+  var q=document.getElementById('search').value.trim().toLowerCase();
+  var st=document.getElementById('status-filter').value;
+  return arr.filter(function(r){
+    var d=r.data;
+    if(st && (d.status||'')!==st)return false;
+    if(!q)return true;
+    var hay=[d[cfg.idField],d.name,d.email,d.phone,d.orderNumber,d.product,d.issueType]
+      .map(function(x){return String(x==null?'':x).toLowerCase();}).join(' ');
+    return hay.indexOf(q)>=0;
+  });
+}
+
+function render(){
+  var cfg=COLS[current];
+  var list=document.getElementById('list');
+  var rows=visibleRecords();
+  if(!rows.length){
+    list.innerHTML='<div class="empty">No '+esc(cfg.label.toLowerCase())+' records found.</div>';
+    return;
+  }
+  list.innerHTML='';
+  rows.forEach(function(r,idx){
+    var d=r.data;
+    var status=d.status||'—';
+    var div=document.createElement('div');
+    div.className='rec';
+    var sub=(current==='ticket')
+      ? esc(d.issueType||'—')+' · '+esc(d.email||'—')
+      : esc(d.product||'—')+' · '+esc(d.email||'—');
+    div.innerHTML=
+      '<div class="rec-top">'+
+        '<span class="rec-id">'+esc(d[cfg.idField]||r.docId)+'</span>'+
+        '<span class="pill '+esc(status)+'">'+esc(status)+'</span>'+
+        '<span class="rec-date">'+esc(fmtDate(d.submittedAt))+'</span>'+
+      '</div>'+
+      '<div class="rec-name">'+esc(d.name||'Unknown')+'</div>'+
+      '<div class="rec-meta">'+sub+'</div>';
+    div.addEventListener('click',function(){openSheet(r);});
+    list.appendChild(div);
+  });
+}
+
+/* ── DETAIL SHEET ── */
+function openSheet(rec){
+  currentRec=rec;
+  var cfg=COLS[current];
+  var d=rec.data;
+  document.getElementById('sheet-id').textContent=d[cfg.idField]||rec.docId;
+
+  var html='';
+  cfg.fields.forEach(function(f){
+    var key=f[0],label=f[1];
+    var val=d[key];
+    if(val==null||val===''||(Array.isArray(val)&&!val.length))val=null;
+    var out;
+    if(val===null){out='<span style="color:var(--text-dim)">—</span>';}
+    else if(key==='invoiceURL'){out='<a href="'+esc(val)+'" target="_blank" rel="noopener">View invoice ↗</a>';}
+    else if(key==='photoURLs'){
+      out=val.map(function(u,i){return '<a href="'+esc(u)+'" target="_blank" rel="noopener">Photo '+(i+1)+' ↗</a>';}).join('<br/>');
+    }
+    else if(key==='submittedAt'){out=esc(fmtDate(val));}
+    else if(key==='status'){out='<span class="pill '+esc(val)+'">'+esc(val)+'</span>';}
+    else if(key==='email'){out='<a href="mailto:'+esc(val)+'">'+esc(val)+'</a>';}
+    else if(key==='phone'){out='<a href="tel:'+esc(val)+'">'+esc(val)+'</a>';}
+    else {out=esc(val).replace(/\n/g,'<br/>');}
+    html+='<div class="row"><div class="row-k">'+esc(label)+'</div><div class="row-v">'+out+'</div></div>';
+  });
+  document.getElementById('sheet-body').innerHTML=html;
+
+  var sel=document.getElementById('status-select');
+  sel.innerHTML='';
+  cfg.statuses.forEach(function(s){
+    var o=document.createElement('option');
+    o.value=s;o.textContent=s.charAt(0).toUpperCase()+s.slice(1);
+    if(s===d.status)o.selected=true;
+    sel.appendChild(o);
+  });
+
+  document.getElementById('modal').classList.add('show');
+}
+
+document.getElementById('btn-close-sheet').addEventListener('click',closeSheet);
+document.getElementById('modal').addEventListener('click',function(e){
+  if(e.target===this)closeSheet();
+});
+document.addEventListener('keydown',function(e){
+  if(e.key==='Escape')closeSheet();
+});
+function closeSheet(){
+  document.getElementById('modal').classList.remove('show');
+  currentRec=null;
+}
+
+/* ── UPDATE STATUS ── */
+document.getElementById('btn-save-status').addEventListener('click',function(){
+  if(!currentRec)return;
+  var cfg=COLS[current];
+  var newStatus=document.getElementById('status-select').value;
+  var btn=this;
+  btn.disabled=true;btn.textContent='Saving...';
+  db.collection(cfg.path).doc(currentRec.docId).update({
+    status:newStatus,
+    updatedAt:new Date().toISOString()
+  }).then(function(){
+    currentRec.data.status=newStatus;
+    render();
+    closeSheet();
+  }).catch(function(e){
+    alert('Could not update: '+(e.message||'unknown error'));
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='Update';
+  });
+});
+
+/* ── DELETE ── */
+document.getElementById('btn-delete').addEventListener('click',function(){
+  if(!currentRec)return;
+  var cfg=COLS[current];
+  var id=currentRec.data[cfg.idField]||currentRec.docId;
+  if(!confirm('Permanently delete '+id+'?\n\nThis cannot be undone. The uploaded file (if any) will remain in Storage.'))return;
+  var btn=this;
+  btn.disabled=true;btn.textContent='Deleting...';
+  var docId=currentRec.docId;
+  db.collection(cfg.path).doc(docId).delete().then(function(){
+    cache[current]=cache[current].filter(function(r){return r.docId!==docId;});
+    document.getElementById('stat-'+current.charAt(0)).textContent=cache[current].length;
+    render();
+    closeSheet();
+  }).catch(function(e){
+    alert('Could not delete: '+(e.message||'unknown error'));
+  }).finally(function(){
+    btn.disabled=false;btn.textContent='Delete';
+  });
+});
+
+/* ── CSV EXPORT ── */
+document.getElementById('btn-csv').addEventListener('click',function(){
+  var cfg=COLS[current];
+  var rows=visibleRecords();
+  if(!rows.length){alert('Nothing to export.');return;}
+  var headers=[cfg.idField].concat(cfg.fields.map(function(f){return f[0];}));
+  function cell(v){
+    if(v==null)return '';
+    if(Array.isArray(v))v=v.join(' | ');
+    v=String(v);
+    return '"'+v.replace(/"/g,'""')+'"';
+  }
+  var lines=[headers.map(cell).join(',')];
+  rows.forEach(function(r){
+    lines.push(headers.map(function(h){return cell(r.data[h]);}).join(','));
+  });
+  var blob=new Blob(['\ufeff'+lines.join('\r\n')],{type:'text/csv;charset=utf-8;'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url;
+  a.download='drluxur-'+current+'-'+new Date().toISOString().slice(0,10)+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+});
+</script>
+</body>
+</html>
