@@ -122,7 +122,7 @@ canvas#wave{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer
 @keyframes spin{to{transform:rotate(360deg)}}
 @keyframes fu{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
 .fu{opacity:0;animation:fu 0.5s ease forwards;}
-.d1{animation-delay:0.1s}.d2{animation-delay:0.2s}.d3{animation-delay:0.3s}.d4{animation-delay:0.4s}.d5{animation-delay:0.5s}
+.d1{animation-delay:0.1s}.d2{animation-delay:0.2s}.d3{animation-delay:0.3s}.d4{animation-delay:0.4s}.d5{animation-delay:0.5s}.d6{animation-delay:0.6s}
 </style>
 </head>
 <body>
@@ -170,6 +170,16 @@ canvas#wave{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer
         <div class="card-text">
           <div class="card-title">Support Ticket</div>
           <div class="card-sub">Raise an issue with our support team</div>
+        </div>
+        <div class="card-arrow">›</div>
+      </button>
+      <button class="card fu d6" id="btn-install">
+        <div class="card-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></svg>
+        </div>
+        <div class="card-text">
+          <div class="card-title">Installation Request</div>
+          <div class="card-sub">Book a technician to install your product</div>
         </div>
         <div class="card-arrow">›</div>
       </button>
@@ -314,6 +324,54 @@ canvas#wave{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer
   </div>
 </div>
 
+<!-- INSTALLATION REQUEST -->
+<div class="screen off-right sub-screen" id="s-install">
+  <div class="topbar">
+    <button class="back-btn" id="back-install">
+      <svg width="9" height="15" viewBox="0 0 9 15" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round"><path d="M7 1L2 7.5 7 14"/></svg>
+    </button>
+    <span class="topbar-title">Installation Request</span>
+  </div>
+  <div class="screen-body">
+    <div class="sec-label">Request Installation Service</div>
+    <div class="field"><label>Full Name *</label><input type="text" id="i-name" placeholder="Enter your full name"/></div>
+    <div class="field"><label>Email Address *</label><input type="email" id="i-email" placeholder="you@example.com"/></div>
+    <div class="field"><label>Phone Number *</label><input type="tel" id="i-phone" placeholder="+91 00000 00000"/></div>
+    <div class="field"><label>Shipping Address *</label><textarea id="i-address" placeholder="Enter your complete shipping address"></textarea></div>
+    <div class="field"><label>Order Number *</label><input type="text" id="i-order" placeholder="DL-XXXXXXXX"/></div>
+    <div class="field">
+      <label>Product</label>
+      <select id="i-model">
+        <option value="">Select your product</option>
+        <option value="Gaming Chair">Gaming Chair</option>
+        <option value="Height Adjustable Gaming Desk">Height Adjustable Gaming Desk</option>
+      </select>
+    </div>
+    <div class="sec-label">Upload Invoice *</div>
+    <div class="upload-box" id="i-upload-box">
+      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--gold-dim)" stroke-width="1.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+      <strong id="i-file-label">Tap to upload invoice</strong>
+      <span>JPG, PNG or PDF</span>
+      <input type="file" id="i-file" style="display:none" accept="image/*,.pdf"/>
+    </div>
+    <div id="i-loading" style="display:none;text-align:center;padding:16px 0;">
+      <div style="display:inline-block;width:24px;height:24px;border:2px solid rgba(201,168,76,0.2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;"></div>
+      <div id="i-loading-msg" style="color:var(--text-dim);font-size:13px;margin-top:8px;">Submitting your request...</div>
+    </div>
+    <button class="submit-btn" id="btn-submit-install">Submit Request →</button>
+  </div>
+  <div class="success-overlay" id="install-success">
+    <div class="success-circle">
+      <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.2" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+    </div>
+    <div class="success-title">Request Received!</div>
+    <div class="success-sub">Our installation team will contact you within 24 hours to schedule a visit. Save your request ID below.</div>
+    <div class="success-id" id="install-id">IR-000000</div>
+    <div style="font-size:12px;color:var(--text-dim);margin-top:-10px;margin-bottom:24px;">Screenshot this for your records</div>
+    <button class="back-home-btn" id="btn-home-from-install">← Back to Home</button>
+  </div>
+</div>
+
 <script>
 /* ── CANVAS WAVE ANIMATION ── */
 (function(){
@@ -438,7 +496,7 @@ function goTo(id){
 }
 
 /* card press effect */
-['btn-warranty','btn-videos','btn-ticket'].forEach(function(id){
+['btn-warranty','btn-videos','btn-ticket','btn-install'].forEach(function(id){
   var el=document.getElementById(id);
   if(!el)return;
   function go(){goTo('s-'+id.replace('btn-',''));}
@@ -447,7 +505,7 @@ function goTo(id){
   el.addEventListener('click',go);
 });
 
-['back-warranty','back-videos','back-ticket'].forEach(function(id){
+['back-warranty','back-videos','back-ticket','back-install'].forEach(function(id){
   var el=document.getElementById(id);
   if(!el)return;
   el.addEventListener('click',function(){goTo('s-home');});
@@ -668,6 +726,86 @@ document.getElementById('btn-home-from-ticket').addEventListener('click',functio
   var chips=document.querySelectorAll('#chip-group .chip');
   for(var i=0;i<chips.length;i++)chips[i].classList.remove('on');
   chips[0].classList.add('on');
+  goTo('s-home');
+});
+
+/* ── INSTALLATION FILE UPLOAD ── */
+document.getElementById('i-upload-box').addEventListener('click',function(){document.getElementById('i-file').click();});
+document.getElementById('i-file').addEventListener('change',function(){
+  var lbl=document.getElementById('i-file-label');
+  lbl.textContent=this.files.length?this.files[0].name:'Tap to upload invoice';
+});
+
+/* ── SUBMIT INSTALLATION REQUEST ── */
+document.getElementById('btn-submit-install').addEventListener('click',function(){
+  var name=document.getElementById('i-name').value.trim();
+  var email=document.getElementById('i-email').value.trim();
+  var phone=document.getElementById('i-phone').value.trim();
+  var address=document.getElementById('i-address').value.trim();
+  var order=document.getElementById('i-order').value.trim();
+  var model=document.getElementById('i-model').value;
+  var file=document.getElementById('i-file').files[0];
+
+  if(!name){alert('Please enter your full name.');return;}
+  if(!email||email.indexOf('@')<0){alert('Please enter a valid email address.');return;}
+  if(!phone){alert('Please enter your phone number.');return;}
+  if(!address){alert('Please enter your complete shipping address.');return;}
+  if(!order){alert('Please enter your order number.');return;}
+  if(!file){alert('Please upload your invoice.');return;}
+
+  var iid='IR-'+(Math.floor(Math.random()*900000)+100000);
+  var submittedAt=new Date().toISOString();
+  var payload={requestId:iid,status:'pending',name:name,email:email,phone:phone,shippingAddress:address,orderNumber:order,product:model||'',hasInvoice:true,invoiceName:file.name,invoiceSize:file.size,submittedAt:submittedAt,source:'drluxur-app'};
+
+  document.getElementById('btn-submit-install').style.display='none';
+  document.getElementById('i-loading').style.display='block';
+
+  var FIREBASE_ENABLED=true;
+  var FIREBASE_CONFIG={
+    apiKey:'AIzaSyDxE3KBE211akr3ophkJ3mc8GZLjsI53_8',
+    authDomain:'ergothrone-fe349.firebaseapp.com',
+    projectId:'ergothrone-fe349',
+    storageBucket:'ergothrone-fe349.firebasestorage.app',
+    messagingSenderId:'YOUR_SENDER_ID',
+    appId:'YOUR_APP_ID'
+  };
+
+  if(FIREBASE_ENABLED && typeof firebase!=='undefined'){
+    if(!firebase.apps.length){firebase.initializeApp(FIREBASE_CONFIG);}
+    var db=firebase.firestore();
+    var lmsg=document.getElementById('i-loading-msg');
+    if(file&&firebase.storage){
+      var meta={contentType:file.type||'application/octet-stream'};
+      firebase.storage().ref('drluxur/installation-invoices/'+iid+'-'+file.name).put(file,meta).then(function(snap){
+        return snap.ref.getDownloadURL();
+      }).then(function(url){
+        payload.invoiceURL=url;
+        lmsg.textContent='Saving request details...';
+        return db.collection('drluxur/data/installation_requests').doc(iid).set(payload);
+      }).then(function(){showInstallSuccess(iid);}).catch(function(err){
+        payload.uploadError=err.message||'';
+        db.collection('drluxur/data/installation_requests').doc(iid).set(payload).then(function(){showInstallSuccess(iid);}).catch(function(){showInstallSuccess(iid);});
+      });
+    } else {
+      db.collection('drluxur/data/installation_requests').doc(iid).set(payload).then(function(){showInstallSuccess(iid);}).catch(function(){showInstallSuccess(iid);});
+    }
+  } else {
+    setTimeout(function(){showInstallSuccess(iid);},900);
+  }
+});
+
+function showInstallSuccess(iid){
+  document.getElementById('i-loading').style.display='none';
+  document.getElementById('btn-submit-install').style.display='block';
+  document.getElementById('install-id').textContent=iid;
+  document.getElementById('install-success').classList.add('show');
+}
+document.getElementById('btn-home-from-install').addEventListener('click',function(){
+  document.getElementById('install-success').classList.remove('show');
+  ['i-name','i-email','i-phone','i-address','i-order'].forEach(function(id){document.getElementById(id).value='';});
+  document.getElementById('i-model').value='';
+  document.getElementById('i-file').value='';
+  document.getElementById('i-file-label').textContent='Tap to upload invoice';
   goTo('s-home');
 });
 </script>
