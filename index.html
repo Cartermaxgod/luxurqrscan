@@ -208,6 +208,29 @@ canvas#wave{position:fixed;top:0;left:0;width:100%;height:100%;z-index:0;pointer
         <option value="Height Adjustable Gaming Desk">Height Adjustable Gaming Desk</option>
       </select>
     </div>
+    <div class="field" id="w-desk-model-wrap" style="display:none;">
+      <label>Model *</label>
+      <select id="w-desk-model">
+        <option value="">Select model</option>
+        <option value="Drluxur Stallion">Drluxur Stallion</option>
+        <option value="Drluxur Zenith Momentum">Drluxur Zenith Momentum</option>
+      </select>
+    </div>
+    <div class="field" id="w-desk-size-wrap" style="display:none;">
+      <label>Size *</label>
+      <select id="w-desk-size">
+        <option value="">Select size</option>
+        <option value="100cm">100cm</option>
+        <option value="120cm">120cm</option>
+        <option value="140cm">140cm</option>
+      </select>
+    </div>
+    <div class="field" id="w-desk-color-wrap" style="display:none;">
+      <label>Color *</label>
+      <select id="w-desk-color">
+        <option value="">Select color</option>
+      </select>
+    </div>
     <div class="field"><label>Order Number *</label><input type="text" id="w-order" placeholder="DL-XXXXXXXX"/></div>
     <div class="field"><label>Date of Purchase</label><input type="date" id="w-date"/></div>
     <div class="field">
@@ -569,6 +592,58 @@ document.getElementById('w-file').addEventListener('change',function(){
   lbl.textContent=this.files.length?this.files[0].name:'Tap to upload invoice';
 });
 
+/* ── DESK MODEL / SIZE / COLOR CASCADE ── */
+var DESK_COLORS={
+  'Drluxur Stallion':['Mist Oak','Artic Oak','Black','Estate Oak','Honey Pine','Satin Maple'],
+  'Drluxur Zenith Momentum':['White','Honey Pine Rust','Black']
+};
+var wModel=document.getElementById('w-model');
+var wDeskModelWrap=document.getElementById('w-desk-model-wrap');
+var wDeskModel=document.getElementById('w-desk-model');
+var wDeskSizeWrap=document.getElementById('w-desk-size-wrap');
+var wDeskSize=document.getElementById('w-desk-size');
+var wDeskColorWrap=document.getElementById('w-desk-color-wrap');
+var wDeskColor=document.getElementById('w-desk-color');
+
+function resetDeskCascade(fromStep){
+  if(fromStep<=1){wDeskModel.value='';wDeskModelWrap.style.display='none';}
+  if(fromStep<=2){wDeskSize.value='';wDeskSizeWrap.style.display='none';}
+  if(fromStep<=3){wDeskColor.value='';wDeskColor.innerHTML='<option value="">Select color</option>';wDeskColorWrap.style.display='none';}
+}
+
+wModel.addEventListener('change',function(){
+  if(this.value==='Height Adjustable Gaming Desk'){
+    wDeskModelWrap.style.display='block';
+  } else {
+    resetDeskCascade(1);
+  }
+});
+
+wDeskModel.addEventListener('change',function(){
+  if(this.value){
+    wDeskSizeWrap.style.display='block';
+  } else {
+    resetDeskCascade(2);
+  }
+  // rebuild color options for the newly chosen model, reset any prior selection
+  wDeskColor.value='';
+  wDeskColor.innerHTML='<option value="">Select color</option>';
+  wDeskColorWrap.style.display='none';
+  (DESK_COLORS[this.value]||[]).forEach(function(c){
+    var o=document.createElement('option');
+    o.value=c;o.textContent=c;
+    wDeskColor.appendChild(o);
+  });
+});
+
+wDeskSize.addEventListener('change',function(){
+  if(this.value){
+    wDeskColorWrap.style.display='block';
+  } else {
+    resetDeskCascade(3);
+  }
+});
+
 /* ── SUBMIT WARRANTY ── */
 document.getElementById('btn-submit-warranty').addEventListener('click',function(){
   var name=document.getElementById('w-name').value.trim();
@@ -579,10 +654,15 @@ document.getElementById('btn-submit-warranty').addEventListener('click',function
   var date=document.getElementById('w-date').value;
   var store=document.getElementById('w-store').value;
   var file=document.getElementById('w-file').files[0];
+  var isDesk=(model==='Height Adjustable Gaming Desk');
+  var deskModel=isDesk?wDeskModel.value:'';
+  var deskSize=isDesk?wDeskSize.value:'';
+  var deskColor=isDesk?wDeskColor.value:'';
   if(!name||!email||!model||!order){alert('Please fill in: Name, Email, Product and Order Number.');return;}
+  if(isDesk&&(!deskModel||!deskSize||!deskColor)){alert('Please select Model, Size and Color for your desk.');return;}
   if(!document.getElementById('w-tc').checked){alert('Please agree to the Terms and Conditions to proceed.');return;}
   var wid='WT-'+(Math.floor(Math.random()*900000)+100000);
-  var payload={warrantyId:wid,name:name,email:email,phone:phone||'',product:model,orderNumber:order,purchaseDate:date||'',retailer:store||'',hasInvoice:file?true:false,invoiceName:file?file.name:'',submittedAt:new Date().toISOString(),source:'drluxur-app',status:'active'};
+  var payload={warrantyId:wid,name:name,email:email,phone:phone||'',product:model,deskModel:deskModel,deskSize:deskSize,deskColor:deskColor,orderNumber:order,purchaseDate:date||'',retailer:store||'',hasInvoice:file?true:false,invoiceName:file?file.name:'',submittedAt:new Date().toISOString(),source:'drluxur-app',status:'active'};
   document.getElementById('btn-submit-warranty').style.display='none';
   document.getElementById('w-loading').style.display='block';
 
@@ -632,6 +712,7 @@ document.getElementById('btn-home-from-warranty').addEventListener('click',funct
   document.getElementById('w-file').value='';
   document.getElementById('w-file-label').textContent='Tap to upload invoice';
   document.getElementById('w-tc').checked=false;
+  resetDeskCascade(1);
   goTo('s-home');
 });
 
